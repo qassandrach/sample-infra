@@ -1,0 +1,99 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+          - 0
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          command:
+          - sh
+          - -ceu
+          - |
+            mkdir -p /var/lib/grafana/provisioning/datasources
+            cp /etc/grafana/provisioning/datasources/default.yaml /var/lib/grafana/provisioning/datasources/default.yaml
+            echo $password_prome > /tmp/password
+            passwd=$(cat /tmp/password)
+            sed -i "s/PASSWORD/$passwd/" /var/lib/grafana/provisioning/datasources/default.yaml
+            grafana server
+          env:
+          - name: GF_PATHS_PROVISIONING
+            value: "/var/lib/grafana/provisioning"
+          - name: password_prome
+            valueFrom:
+              secretKeyRef:
+                name: secret
+                key: password_prome
+          ports:
+            - containerPort: 3000
+              name: http-grafana
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /robots.txt
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 2
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 250m
+              memory: 750Mi
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grafana-pv
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grafana-datasources
+            - mountPath: /var/lib/grafana/provisioning/dashboards
+              name: grafana-dashboards
+            - mountPath: /etc/grafana/provisioning/dashboards/cluster-2
+              name: grafana-dashboards-pods-cluster-2
+            - mountPath: /etc/grafana/provisioning/dashboards/cluster-3
+              name: grafana-dashboards-pods-cluster-3
+            - mountPath: /etc/grafana/provisioning/dashboards/infra
+              name: grafana-dashboards-infra
+      volumes:
+        - name: grafana-pv
+          persistentVolumeClaim:
+            claimName: grafana-pvc
+        - name: grafana-datasources
+          configMap:
+            name: datasources                     
+        - name: grafana-dashboards
+          configMap:
+            name: dashboards
+        - name: grafana-dashboards-pods-cluster-2
+          configMap:
+            name: dashboards-pods-cluster-2
+        - name: grafana-dashboards-pods-cluster-3
+          configMap:
+            name: dashboards-pods-cluster-3
+        - name: grafana-dashboards-infra
+          configMap:
+            name: dashboards-infra

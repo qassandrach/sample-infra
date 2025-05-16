@@ -1,0 +1,7 @@
+cluster-prod-3:
+  from:
+  - default
+  - default/pods
+  to:
+  - default
+  - default/pods

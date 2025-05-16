@@ -1,0 +1,31 @@
+
+├── kcd-project-1
+│   └── 03-kube-manifests
+│       ├── 01-grafana
+│       │   ├── main.tf
+│       │   └── manifests
+│       │       ├── kustomization.yaml
+│       │       └── ...
+│       └── 02-prometheus
+│           ├── main.tf
+│           └── manifests
+│               ├── kustomization.yaml
+│               └── ...
+├── kcd-project-2
+│   └── 03-kube-manifests
+│       ├── 01-prometheus
+│       │   ├── main.tf
+│       │   └── manifests
+│       │       ├── kustomization.yaml
+│       │       └── ...
+│       └── ...
+├── kcd-project-3
+│   ├── ...
+│   └── 03-kube-manifests
+│       ├── 01-prometheus
+│       │   ├── main.tf
+│       │   └── manifests
+│       │       ├── kustomization.yaml
+│       │       └── ...
+│       └── ...
+└── ...
